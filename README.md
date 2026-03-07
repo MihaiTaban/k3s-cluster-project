@@ -17,3 +17,6 @@ Clusterul este complet funcțional și a trecut testul de stabilitate după rebo
 * Instalare Prometheus & Grafana (Monitoring)
 * Pregătire mediu Jenkins (CI/CD)
 * Creare fișiere Helm Chart pentru aplicație
+
+## ✅ Validare Stabilitate
+* [07-03-2026 10:17] Test Reboot efectuat: Clusterul revine automat în starea Ready.
