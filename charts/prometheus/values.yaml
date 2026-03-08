@@ -1,4 +1,7 @@
-prometheus-server:
+server:
+  service:
+    type: NodePort
+    nodePort: 32100
   retention: 1h
   persistentVolume:
     enabled: false
@@ -8,12 +11,8 @@ prometheus-server:
     requests:
       memory: 128Mi
 
-# Dezactivăm restul suitei care consumă RAM
+# Dezactivăm restul componentelor grele
 alertmanager:
   enabled: false
-prometheus-pushgateway:
+pushgateway:
   enabled: false
-kube-state-metrics:
-  enabled: true
-prometheus-node-exporter:
-  enabled: true
