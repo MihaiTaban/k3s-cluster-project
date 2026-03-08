@@ -46,10 +46,67 @@ Am eliminat nevoia de parole folosind chei asimetrice (Public/Private Key).
 
 ---
 
-## 🚀 Plan Duminică, 8 Martie 2026 (Work in Progress):
-1.  **Instalare Helm v3**: `curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash`
-2.  **Configurare Jenkins**: Automatizarea fluxului de Deploy.
-3.  **Monitoring**: Implementare Stack Prometheus & Grafana via Helm.
+## 🛠️ 5. Management și Persistență
+
+### 5.1. Instalare Helm (Pe Master)
+\`\`\`bash
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+\`\`\`
+
+### 5.2. Configurare Stocare Jenkins
+\`\`\`bash
+sudo mkdir -p /data/jenkins && sudo chown -R 1000:1000 /data/jenkins
+\`\`\`
 
 ---
+
+## 🚀 6. Configurare Jenkins (Namespace: cicd)
+
+### 6.1. Instalare prin Helm
+\`\`\`bash
+kubectl create namespace cicd
+helm repo add jenkins https://charts.jenkins.io
+helm repo update
+helm install jenkins jenkins/jenkins -n cicd -f charts/jenkins/values.yaml
+\`\`\`
+
+### 6.2. Operațiuni în Interfața Jenkins (http://192.168.56.102:32000)
+După logare, am configurat Pipeline-ul de monitorizare astfel:
+1. **New Item** -> Nume: \`deploy-monitoring\` -> Tip: **Pipeline**.
+2. **Pipeline Definition**: Selectat "Pipeline script from SCM".
+3. **SCM**: Git.
+4. **Repository URL**: \`https://github.com/MihaiTaban/k3s-cluster-project.git\`.
+5. **Branch Specifier**: \`*/main\` (Am corectat de la master la main).
+6. **Script Path**: \`Jenkinsfile\`.
+
+### 6.3. Drepturi de Execuție (RBAC)
+Pentru ca Pipeline-ul să poată crea resurse în cluster, am rulat pe Master:
+\`\`\`bash
+kubectl create clusterrolebinding jenkins-agent-admin-binding \\
+    --clusterrole=cluster-admin \\
+    --serviceaccount=cicd:default
+\`\`\`
+
+---
+
+## 📊 7. Monitorizare Prometheus (Namespace: monitoring)
+
+Instalarea este realizată automat prin Jenkins. Am folosit o configurație **Ultra-Lite** pentru a proteja memoria RAM (2GB):
+- **Resurse**: Limitare la 256Mi RAM per pod.
+- **Acces UI**: Configurat ca NodePort pe portul **32100**.
+- **URL**: http://192.168.56.102:32100
+
+---
+
+## 🛠️ Jurnal de Troubleshooting
+
+| Etapa | Problema | Cauza | Soluție |
+| :--- | :--- | :--- | :--- |
+| **Jenkins** | CrashLoopBackOff | Startup lent al Java. | Crescut \`initialDelaySeconds\` la 120s. |
+| **Jenkins UI** | Pipeline Fail (Git) | Branch default greșit. | Schimbat din \`*/master\` în \`*/main\`. |
+| **Pipeline** | Permission Denied | Lipsă drepturi Agent. | Creat \`ClusterRoleBinding\` pentru serviceaccount. |
+| **Cluster** | API Handshake Timeout | RAM 100% (Prometheus Stack). | Trecere la Prometheus Lite (fără Operator/Grafana). |
+
+---
+
 *Notă: Acest document servește ca suport de curs pentru sedimentarea noțiunilor DevOps.*
