@@ -5,10 +5,14 @@ controller:
     password: "password123"
   resources:
     requests:
-      cpu: "50m"
+      cpu: "100m"
       memory: "512Mi"
     limits:
-      cpu: "200m"
+      cpu: "300m"
       memory: "1Gi"
+  # Mărim timpul de așteptare la pornire
+  startupProbe:
+    failureThreshold: 30
+    periodSeconds: 10
   serviceType: NodePort
   nodePort: 32000
