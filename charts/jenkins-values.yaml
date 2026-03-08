@@ -8,11 +8,18 @@ controller:
       cpu: "100m"
       memory: "512Mi"
     limits:
-      cpu: "300m"
-      memory: "1Gi"
-  # Mărim timpul de așteptare la pornire
-  startupProbe:
-    failureThreshold: 30
-    periodSeconds: 10
+      cpu: "500m"
+      memory: "1.5Gi"
+  # Structura corectă pentru acest chart:
+  probes:
+    startupProbe:
+      failureThreshold: 60
+      periodSeconds: 10
+    readinessProbe:
+      failureThreshold: 10
+      periodSeconds: 10
+    livenessProbe:
+      failureThreshold: 10
+      periodSeconds: 10
   serviceType: NodePort
   nodePort: 32000
