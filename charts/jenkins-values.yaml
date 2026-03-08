@@ -1,0 +1,14 @@
+controller:
+  componentName: "jenkins-controller"
+  admin:
+    username: "admin"
+    password: "password123"
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "512Mi"
+    limits:
+      cpu: "200m"
+      memory: "1Gi"
+  serviceType: NodePort
+  nodePort: 32000
