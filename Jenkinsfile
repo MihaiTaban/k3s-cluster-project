@@ -8,22 +8,22 @@ spec:
   containers:
   - name: helm
     image: alpine/helm:3.12.0
-    command:
-    - sleep
-    args:
-    - infinity
+    command: ["sleep"]
+    args: ["infinity"]
 '''
     }
   }
   stages {
-    stage('Install Prometheus Stack') {
+    stage('Install Micro Monitoring') {
       steps {
         container('helm') {
           sh '''
           helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
           helm repo update
-          # Am adăugat --atomic pentru a da rollback automat dacă eșuează
-          helm upgrade --install prometheus-stack prometheus-community/kube-prometheus-stack               --namespace monitoring --create-namespace               -f charts/prometheus/values.yaml               --atomic --timeout 10m
+          # Atenție: folosim chart-ul "prometheus", nu "kube-prometheus-stack"
+          helm upgrade --install prometheus-lite prometheus-community/prometheus \
+              --namespace monitoring --create-namespace \
+              -f charts/prometheus/values.yaml
           '''
         }
       }

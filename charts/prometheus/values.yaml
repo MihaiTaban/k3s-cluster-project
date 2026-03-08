@@ -1,13 +1,19 @@
-prometheus:
-  prometheusSpec:
-    retention: 1d
-    resources:
-      limits:
-        memory: 512Mi
-      requests:
-        memory: 256Mi
-grafana:
-  adminPassword: "admin"
-  service:
-    type: NodePort
-    nodePort: 32500
+prometheus-server:
+  retention: 1h
+  persistentVolume:
+    enabled: false
+  resources:
+    limits:
+      memory: 256Mi
+    requests:
+      memory: 128Mi
+
+# Dezactivăm restul suitei care consumă RAM
+alertmanager:
+  enabled: false
+prometheus-pushgateway:
+  enabled: false
+kube-state-metrics:
+  enabled: true
+prometheus-node-exporter:
+  enabled: true
