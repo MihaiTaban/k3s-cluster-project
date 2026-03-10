@@ -5,11 +5,6 @@ image:
   pullPolicy: IfNotPresent
   tag: "latest"
 
-serviceAccount:
-  create: true
-  annotations: {}
-  name: ""
-
 service:
   type: NodePort
   port: 80
@@ -18,19 +13,3 @@ metrics:
   enabled: true
   path: /metrics
   port: 8000
-
-# Adăugăm și restul secțiunilor goale ca să nu mai dea erori
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
-podAnnotations: {}
-podSecurityContext: {}
-securityContext: {}
-ingress:
-  enabled: false
-resources: {}
-autoscaling:
-  enabled: false
-nodeSelector: {}
-tolerations: []
-affinity: {}
