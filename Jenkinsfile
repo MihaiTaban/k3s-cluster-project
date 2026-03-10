@@ -1,32 +1,48 @@
 pipeline {
-  agent {
-    kubernetes {
-      yaml '''
-apiVersion: v1
-kind: Pod
-spec:
-  containers:
-  - name: helm
-    image: alpine/helm:3.12.0
-    command: ["sleep"]
-    args: ["infinity"]
-'''
+    agent any
+
+    environment {
+        APP_NAME = "python-test-app"
+        CHART_PATH = "./charts/python-app-chart"
     }
-  }
-  stages {
-    stage('Install Micro Monitoring') {
-      steps {
-        container('helm') {
-          sh '''
-          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-          helm repo update
-          # Atenție: folosim chart-ul "prometheus", nu "kube-prometheus-stack"
-          helm upgrade --install prometheus-lite prometheus-community/prometheus \
-              --namespace monitoring --create-namespace \
-              -f charts/prometheus/values.yaml
-          '''
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
         }
-      }
+
+        stage('Docker Build') {
+            steps {
+                echo "Construim imaginea Docker..."
+                sh "docker build -t ${APP_NAME}:latest ."
+            }
+        }
+
+        stage('Helm Deploy') {
+            steps {
+                echo "Lansăm aplicația în Kubernetes folosind Helm..."
+                // Folosim upgrade --install ca să meargă și la prima rulare și la următoarele
+                sh "helm upgrade --install ${APP_NAME} ${CHART_PATH} --set image.tag=latest"
+            }
+        }
+
+        stage('Verify') {
+            steps {
+                echo "Verificăm statusul resurselor..."
+                sh "kubectl get pods -l app.kubernetes.io/name=python-app-chart"
+                sh "kubectl get svc ${APP_NAME}-python-app-chart"
+            }
+        }
     }
-  }
+    
+    post {
+        success {
+            echo 'Pipeline executat cu succes! Aplicația e sus.'
+        }
+        failure {
+            echo 'Ceva nu a mers bine. Verifică logurile de Docker sau Helm.'
+        }
+    }
 }
