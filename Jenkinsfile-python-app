@@ -1,48 +1,46 @@
 pipeline {
-    agent any
-
-    environment {
-        APP_NAME = "python-test-app"
-        CHART_PATH = "./charts/python-app-chart"
+    agent {
+        kubernetes {
+            yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:debug
+    command: ['sleep']
+    args: ['99d']
+  - name: helm
+    image: alpine/helm:3.12.0
+    command: ['sleep']
+    args: ['99d']
+"""
+        }
     }
-
     stages {
-        stage('Checkout') {
+        stage('Build Image') {
             steps {
-                checkout scm
+                container('kaniko') {
+                    echo "Construim imaginea cu Kaniko..."
+                    sh '/kaniko/executor --context . --dockerfile Dockerfile --destination python-test-app:latest --no-push'
+                }
             }
         }
-
-        stage('Docker Build') {
-            steps {
-                echo "Construim imaginea Docker..."
-                sh "docker build -t ${APP_NAME}:latest ."
-            }
-        }
-
         stage('Helm Deploy') {
             steps {
-                echo "Lansăm aplicația în Kubernetes folosind Helm..."
-                // Folosim upgrade --install ca să meargă și la prima rulare și la următoarele
-                sh "helm upgrade --install ${APP_NAME} ${CHART_PATH} --set image.tag=latest"
-            }
-        }
-
-        stage('Verify') {
-            steps {
-                echo "Verificăm statusul resurselor..."
-                sh "kubectl get pods -l app.kubernetes.io/name=python-app-chart"
-                sh "kubectl get svc ${APP_NAME}-python-app-chart"
+                container('helm') {
+                    echo "Lansăm aplicația în K3s..."
+                    sh 'helm upgrade --install python-test-app ./charts/python-app-chart --namespace default'
+                }
             }
         }
     }
-    
     post {
         success {
-            echo 'Pipeline executat cu succes! Aplicația e sus.'
+            echo 'Aplicația a fost construită și instalată cu succes!'
         }
         failure {
-            echo 'Ceva nu a mers bine. Verifică logurile de Docker sau Helm.'
+            echo 'Ceva nu a mers bine. Verifică logurile de Kaniko sau Helm.'
         }
     }
 }
