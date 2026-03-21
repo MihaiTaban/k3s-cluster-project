@@ -1,0 +1,18 @@
+server:
+  service:
+    type: NodePort
+    nodePort: 32100
+  retention: 1h
+  persistentVolume:
+    enabled: false
+  resources:
+    limits:
+      memory: 256Mi
+    requests:
+      memory: 128Mi
+
+# Dezactivăm restul componentelor grele
+alertmanager:
+  enabled: false
+pushgateway:
+  enabled: false

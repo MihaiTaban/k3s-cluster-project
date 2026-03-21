@@ -1,0 +1,62 @@
+pipeline {
+    agent {
+        kubernetes {
+            yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: tools
+    image: alpine/helm:3.12.0
+    command:
+    - sleep
+    args:
+    - infinity
+  - name: jnlp
+    image: jenkins/inbound-agent:latest
+"""
+        }
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Helm Lint') {
+            steps {
+                container('tools') {
+                    sh 'helm lint charts/python-app-chart'
+                }
+            }
+        }
+
+        stage('Deploy to K3s') {
+            steps {
+                container('tools') {
+                    sh 'helm upgrade --install python-test-app charts/python-app-chart --namespace default'
+                }
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                container('tools') {
+                    // Verificam statusul release-ului prin helm in loc de kubectl
+                    sh 'helm status python-test-app --namespace default'
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '🚀 VICTORIE! Aplicatia este live si monitorizata.'
+        }
+        failure {
+            echo '❌ Pipeline esuat la ultima etapa, dar verificati daca deploy-ul a trecut.'
+        }
+    }
+}

@@ -1,0 +1,25 @@
+controller:
+  componentName: "jenkins-controller"
+  admin:
+    username: "admin"
+    password: "password123"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "1.5Gi"
+  # Structura corectă pentru acest chart:
+  probes:
+    startupProbe:
+      failureThreshold: 60
+      periodSeconds: 10
+    readinessProbe:
+      failureThreshold: 10
+      periodSeconds: 10
+    livenessProbe:
+      failureThreshold: 10
+      periodSeconds: 10
+  serviceType: NodePort
+  nodePort: 32000
